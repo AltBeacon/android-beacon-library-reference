@@ -1,0 +1,25 @@
+apply plugin: 'android'
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "19.1.0"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 18
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    dependencies {
+        compile project(':androidBeaconLibrary')
+    }
+    compile 'com.android.support:support-v4:+'
+}

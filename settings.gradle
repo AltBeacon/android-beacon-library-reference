@@ -1,0 +1,2 @@
+include ':androidBeaconLibrary', 'beaconReference'
+include ':beaconReference'

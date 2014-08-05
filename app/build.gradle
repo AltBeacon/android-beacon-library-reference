@@ -1,0 +1,32 @@
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "19.1.0"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 18
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    dependencies {
+        compile 'org.altbeacon:android-beacon-library:2+@aar'
+    }
+    compile 'com.android.support:support-v4:+'
+}
