@@ -108,12 +108,12 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
     @Override 
     protected void onPause() {
     	super.onPause();
-    	if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(this, true);
+    	if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(true);
     }
     @Override 
     protected void onResume() {
     	super.onResume();
-    	if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(this, false);
+    	if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(false);
     }    
     
     private void logToDisplay(final String line) {
