@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/range_button"
+        android:layout_below="@+id/textView1"
         android:layout_marginTop="36dp"
         android:ems="10"
         android:gravity="left|top"
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/range_button"
+        android:layout_below="@+id/Button01"
         android:layout_marginTop="17dp"
         android:text="Monitoring Events:" />
 
@@ -36,13 +36,6 @@
         android:onClick="onRangingClicked"
         android:text="Start Ranging" />
 
-    <Button
-        android:id="@+id/range_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/Button01"
-        android:onClick="onBackgroundClicked"
-        android:text="Background Mode" />
+
     
 </RelativeLayout>

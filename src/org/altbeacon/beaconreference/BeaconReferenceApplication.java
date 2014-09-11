@@ -11,28 +11,31 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.altbeacon.beacon.startup.RegionBootstrap;
 
 import android.app.Application;
 import android.os.RemoteException;
 import android.util.Log;
 
-public class BeaconReferenceApplication extends Application implements BootstrapNotifier, RangeNotifier, MonitorNotifier, BeaconConsumer{
+public class BeaconReferenceApplication extends Application implements BootstrapNotifier, RangeNotifier {
 	private static final String TAG = "BeaconReferenceApplication";
 	private BeaconManager mBeaconManager;
 	private Region mAllBeaconsRegion;
 	private MonitoringActivity mMonitoringActivity;
 	private RangingActivity mRangingActivity;
 	private BackgroundPowerSaver mBackgroundPowerSaver;
+	@SuppressWarnings("unused")
+	private RegionBootstrap mRegionBootstrap;
 	
 	@Override 
 	public void onCreate() {
 		mAllBeaconsRegion = new Region("all beacons", null, null, null);
 		
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
-        mBeaconManager.setDebug(true);
+		mBackgroundPowerSaver = new BackgroundPowerSaver(this);		
+        mRegionBootstrap = new RegionBootstrap(this, mAllBeaconsRegion);
         
-		mBackgroundPowerSaver = new BackgroundPowerSaver(this);
-
+	
         // By default the AndroidBeaconLibrary will only find AltBeacons.  If you wish to make it
         // find a different type of beacon, you must specify the byte layout for that beacon's
         // advertisement with a line like below.  The example shows how to find a beacon with the
@@ -43,23 +46,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         //
         // In order to find out the proper BeaconLayout definition for other kinds of beacons, do
         // a Google search for "setBeaconLayout" (including the quotes in your search.)
-
-	    mBeaconManager.bind(this);		
 	}
-
-	@Override
-	public void onBeaconServiceConnect() {
-		try {
-			mBeaconManager.startRangingBeaconsInRegion(mAllBeaconsRegion);
-			mBeaconManager.setRangeNotifier(this);
-			mBeaconManager.startMonitoringBeaconsInRegion(mAllBeaconsRegion);
-			mBeaconManager.setMonitorNotifier(this);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}	
 	
 	@Override
 	public void didRangeBeaconsInRegion(Collection<Beacon> arg0, Region arg1) {
@@ -80,6 +67,13 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 		if (mMonitoringActivity != null) {
 			mMonitoringActivity.didEnterRegion(arg0);
 		}		
+		try {
+			Log.d(TAG, "entered region.  starting ranging");
+			mBeaconManager.startRangingBeaconsInRegion(mAllBeaconsRegion);
+			mBeaconManager.setRangeNotifier(this);
+		} catch (RemoteException e) {
+			Log.e(TAG, "Cannot start ranging");
+		}
 	}
 
 	@Override

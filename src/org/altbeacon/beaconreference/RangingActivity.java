@@ -20,7 +20,6 @@ import org.altbeacon.beacon.Region;
 
 public class RangingActivity extends Activity {
     protected static final String TAG = "RangingActivity";
-    private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
