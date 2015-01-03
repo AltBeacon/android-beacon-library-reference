@@ -1,6 +1,8 @@
 ## Overview
 
-This is a reference app for the AndroidBeaconLibrary supporting AltBeacon compatible devices
+This is an Android Studio reference app for the AndroidBeaconLibrary supporting AltBeacon compatible devices
+
+If you are looking for an Eclipse reference project, see the eclipse branch.
 
 ## Project Setup
 
