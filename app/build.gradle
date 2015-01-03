@@ -1,0 +1,29 @@
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21"
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 19
+    }
+
+    buildTypes {
+    }
+}
+
+dependencies {
+    dependencies {
+        //compile project(':android-beacon-library')
+        compile 'org.altbeacon:android-beacon-library:2+@aar'
+    }
+    compile 'com.android.support:support-v4:+'
+}

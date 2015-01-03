@@ -1,0 +1,3 @@
+//include ':android-beacon-library'
+include ':app'
+

@@ -1,6 +1,5 @@
 package org.altbeacon.beaconreference;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.app.Activity;
@@ -9,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 
 import org.altbeacon.beacon.BeaconConsumer;
@@ -23,9 +21,10 @@ import org.altbeacon.beacon.Region;
  * @author dyoung
  * @author Matt Tyler
  */
-public class MonitoringActivity extends Activity {
+public class MonitoringActivity extends Activity  {
 	protected static final String TAG = "MonitoringActivity";
     private BeaconManager beaconManager;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +32,25 @@ public class MonitoringActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_monitoring);
 		verifyBluetooth();
+        logToDisplay("Application just launched" );
 	}
 	
 	public void onRangingClicked(View view) {
 		Intent myIntent = new Intent(this, RangingActivity.class);
 		this.startActivity(myIntent);
 	}
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(null);
+    }
 
 	private void verifyBluetooth() {
 
@@ -78,25 +90,7 @@ public class MonitoringActivity extends Activity {
 		
 	}	
 
-    @Override 
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-    @Override 
-    protected void onPause() {
-    	super.onPause();
-    	// Tell the Application not to pass off monitoring updates to this activity
-    	((BeaconReferenceApplication)this.getApplication()).setMonitoringActivity(null);
-    }
-    @Override 
-    protected void onResume() {
-    	super.onResume();
-    	// Tell the Application to pass off monitoring updates to this activity
-    	((BeaconReferenceApplication)this.getApplication()).setMonitoringActivity(this);
-    	getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-    }    
-    
-    private void logToDisplay(final String line) {
+    public void logToDisplay(final String line) {
     	runOnUiThread(new Runnable() {
     	    public void run() {
     	    	EditText editText = (EditText)MonitoringActivity.this
@@ -105,17 +99,5 @@ public class MonitoringActivity extends Activity {
     	    }
     	});
     }
-    
-    public void didEnterRegion(Region region) {
-      logToDisplay("I just saw a beacon named "+ region.getUniqueId() +" for the first time!" );
-    }
 
-    public void didExitRegion(Region region) {
-    	logToDisplay("I no longer see a beacon named "+ region.getUniqueId());
-    }
-
-    public void didDetermineStateForRegion(int state, Region region) {
-    	logToDisplay("I have just switched from seeing/not seeing beacons: "+state);
-    }
-	
 }
