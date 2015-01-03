@@ -23,10 +23,24 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     private RegionBootstrap regionBootstrap;
     private BackgroundPowerSaver backgroundPowerSaver;
     private boolean haveDetectedBeaconsSinceBoot = false;
+    private MonitoringActivity monitoringActivity = null;
 
 
     public void onCreate() {
         super.onCreate();
+        BeaconManager beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
+
+        // By default the AndroidBeaconLibrary will only find AltBeacons.  If you wish to make it
+        // find a different type of beacon, you must specify the byte layout for that beacon's
+        // advertisement with a line like below.  The example shows how to find a beacon with the
+        // same byte layout as AltBeacon but with a beaconTypeCode of 0xaabb.  To find the proper
+        // layout expression for other beacon types, do a web search for "setBeaconLayout"
+        // including the quotes.
+        //
+        // beaconManager.getBeaconParsers().add(new BeaconParser().
+        //        setBeaconLayout("m:2-3=aabb,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+        //
+
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
         Region region = new Region("backgroundRegion",
@@ -38,11 +52,10 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // class will automatically cause the BeaconLibrary to save battery whenever the application
         // is not visible.  This reduces bluetooth power usage by about 60%
         backgroundPowerSaver = new BackgroundPowerSaver(this);
-    }
 
-    @Override
-    public void didDetermineStateForRegion(int arg0, Region arg1) {
-        // This method is not used in this example
+        // If you wish to test beacon detection in the Android Emulator, you can use code like this:
+        // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
+        // ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
     }
 
     @Override
@@ -63,18 +76,33 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
             this.startActivity(intent);
             haveDetectedBeaconsSinceBoot = true;
         } else {
-            // If we have already seen beacons and launched the MainActivity before, we simply
-            // send a notification to the user on subsequent detections.
-            Log.d(TAG, "Sending notification.");
-            sendNotification();
+            if (monitoringActivity != null) {
+                // If the Monitoring Activity is visible, we log info about the beacons we have
+                // seen on its display
+                monitoringActivity.logToDisplay("I see a beacon again" );
+            } else {
+                // If we have already seen beacons before, but the monitoring activity is not in
+                // the foreground, we send a notification to the user on subsequent detections.
+                Log.d(TAG, "Sending notification.");
+                sendNotification();
+            }
         }
 
 
     }
 
     @Override
-    public void didExitRegion(Region arg0) {
-        Log.d(TAG, "exited region");
+    public void didExitRegion(Region region) {
+        if (monitoringActivity != null) {
+            monitoringActivity.logToDisplay("I no longer see a beacon.");
+        }
+    }
+
+    @Override
+    public void didDetermineStateForRegion(int state, Region region) {
+        if (monitoringActivity != null) {
+            monitoringActivity.logToDisplay("I have just switched from seeing/not seeing beacons: " + state);
+        }
     }
 
     private void sendNotification() {
@@ -95,6 +123,10 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         NotificationManager notificationManager =
                 (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, builder.build());
+    }
+
+    public void setMonitoringActivity(MonitoringActivity activity) {
+        this.monitoringActivity = activity;
     }
 
 }

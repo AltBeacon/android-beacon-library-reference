@@ -21,7 +21,7 @@ import org.altbeacon.beacon.Region;
  * @author dyoung
  * @author Matt Tyler
  */
-public class MonitoringActivity extends Activity implements BeaconConsumer {
+public class MonitoringActivity extends Activity  {
 	protected static final String TAG = "MonitoringActivity";
     private BeaconManager beaconManager;
 
@@ -33,27 +33,26 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 		setContentView(R.layout.activity_monitoring);
 		verifyBluetooth();
 
-        beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
 
-        // By default the AndroidBeaconLibrary will only find AltBeacons.  If you wish to make it
-        // find a different type of beacon, you must specify the byte layout for that beacon's
-        // advertisement with a line like below.  The example shows how to find a beacon with the
-        // same byte layout as AltBeacon but with a beaconTypeCode of 0xaabb
-        //
-        // beaconManager.getBeaconParsers().add(new BeaconParser().
-        //        setBeaconLayout("m:2-3=aabb,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-
-	    beaconManager.bind(this);
-	    
-		//initializing simulated beacons
-		//BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
-		//((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
+        logToDisplay("I just saw a beacon for the first time!" );
 	}
 	
 	public void onRangingClicked(View view) {
 		Intent myIntent = new Intent(this, RangingActivity.class);
 		this.startActivity(myIntent);
 	}
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(null);
+    }
 
 	private void verifyBluetooth() {
 
@@ -93,13 +92,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 		
 	}	
 
-    @Override 
-    protected void onDestroy() {
-        super.onDestroy();
-        beaconManager.unbind(this);
-    }
-
-    private void logToDisplay(final String line) {
+    public void logToDisplay(final String line) {
     	runOnUiThread(new Runnable() {
     	    public void run() {
     	    	EditText editText = (EditText)MonitoringActivity.this
@@ -108,31 +101,5 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
     	    }
     	});
     }
-    @Override
-    public void onBeaconServiceConnect() {
-        beaconManager.setMonitorNotifier(new MonitorNotifier() {
-        @Override
-        public void didEnterRegion(Region region) {
-          logToDisplay("I just saw a beacon named "+ region.getUniqueId() +" for the first time!" );
-        }
 
-        @Override
-        public void didExitRegion(Region region) {
-        	logToDisplay("I no longer see a beacon named "+ region.getUniqueId());
-        }
-
-        @Override
-        public void didDetermineStateForRegion(int state, Region region) {
-        	logToDisplay("I have just switched from seeing/not seeing beacons: "+state);
-        }
-
-
-        });
-
-        try {
-        	beaconManager.startMonitoringBeaconsInRegion(new Region("myMonitoringUniqueId", null, null, null));
-        	
-        } catch (RemoteException e) {   }
-    }
-	
 }

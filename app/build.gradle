@@ -8,24 +8,21 @@ repositories {
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "19.1.0"
+    compileSdkVersion 21
+    buildToolsVersion "21"
 
     defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion 18
+        minSdkVersion 19
+        targetSdkVersion 19
     }
 
     buildTypes {
-        release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
     }
 }
 
 dependencies {
     dependencies {
+        //compile project(':android-beacon-library')
         compile 'org.altbeacon:android-beacon-library:2+@aar'
     }
     compile 'com.android.support:support-v4:+'
