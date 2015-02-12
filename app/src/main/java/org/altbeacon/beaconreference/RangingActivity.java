@@ -27,7 +27,6 @@ public class RangingActivity extends Activity implements BeaconConsumer {
 		setContentView(R.layout.activity_ranging);
 
         beaconManager.bind(this);
-        beaconManager.debug = true;
     }
     @Override 
     protected void onDestroy() {

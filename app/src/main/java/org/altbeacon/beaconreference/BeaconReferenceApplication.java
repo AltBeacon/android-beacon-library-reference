@@ -10,6 +10,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.RegionBootstrap;
@@ -46,7 +47,6 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         Region region = new Region("backgroundRegion",
                 null, null, null);
         regionBootstrap = new RegionBootstrap(this, region);
-        BeaconManager.debug = true;
 
         // simply constructing this class and holding a reference to it in your custom Application
         // class will automatically cause the BeaconLibrary to save battery whenever the application
