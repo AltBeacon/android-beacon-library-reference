@@ -1,5 +1,10 @@
 package org.altbeacon.beaconreference;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.app.Activity;
@@ -23,7 +28,7 @@ import org.altbeacon.beacon.Region;
  */
 public class MonitoringActivity extends Activity  {
 	protected static final String TAG = "MonitoringActivity";
-    private BeaconManager beaconManager;
+	private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
 
 	@Override
@@ -32,9 +37,56 @@ public class MonitoringActivity extends Activity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_monitoring);
 		verifyBluetooth();
-        logToDisplay("Application just launched" );
+        logToDisplay("Application just launched");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access");
+                builder.setMessage("Please grant location access so this app can detect beacons in the background.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                    @TargetApi(23)
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                PERMISSION_REQUEST_COARSE_LOCATION);
+                    }
+
+                });
+                builder.show();
+            }
+        }
 	}
-	
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode,
+										   String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case PERMISSION_REQUEST_COARSE_LOCATION: {
+				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					Log.d(TAG, "coarse location permission granted");
+				} else {
+					final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+					builder.setTitle("Functionality limited");
+					builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+					builder.setPositiveButton(android.R.string.ok, null);
+					builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+						@Override
+						public void onDismiss(DialogInterface dialog) {
+						}
+
+					});
+					builder.show();
+				}
+				return;
+			}
+		}
+	}
+
 	public void onRangingClicked(View view) {
 		Intent myIntent = new Intent(this, RangingActivity.class);
 		this.startActivity(myIntent);

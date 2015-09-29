@@ -20,7 +20,7 @@ import org.altbeacon.beacon.startup.BootstrapNotifier;
  * Created by dyoung on 12/13/13.
  */
 public class BeaconReferenceApplication extends Application implements BootstrapNotifier {
-    private static final String TAG = "AndroidProximityReferenceApplication";
+    private static final String TAG = "BeaconReferenceApp";
     private RegionBootstrap regionBootstrap;
     private BackgroundPowerSaver backgroundPowerSaver;
     private boolean haveDetectedBeaconsSinceBoot = false;
@@ -38,9 +38,9 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // layout expression for other beacon types, do a web search for "setBeaconLayout"
         // including the quotes.
         //
-        // beaconManager.getBeaconParsers().add(new BeaconParser().
-        //        setBeaconLayout("m:2-3=aabb,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-        //
+        //beaconManager.getBeaconParsers().clear();
+        //beaconManager.getBeaconParsers().add(new BeaconParser().
+        //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
