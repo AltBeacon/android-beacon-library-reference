@@ -23,7 +23,7 @@ android {
 dependencies {
     dependencies {
         //compile project(':android-beacon-library')
-        compile 'org.altbeacon:android-beacon-library:2.6@aar'
+        compile 'org.altbeacon:android-beacon-library:2.7@aar'
     }
     compile 'com.android.support:support-v4:+'
 }
