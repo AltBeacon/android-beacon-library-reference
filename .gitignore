@@ -7,8 +7,6 @@
 
 # Java class files
 *.class
-.gradle
-local.properties
 app/*
 build/*
 
