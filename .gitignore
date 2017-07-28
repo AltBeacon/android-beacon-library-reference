@@ -1,15 +1,3 @@
-# built application files
-*.apk
-*.ap_
-
-# files for the dex VM
-*.dex
-
-# Java class files
-*.class
-app/*
-build/*
-
 # generated files
 bin/
 gen/
@@ -34,12 +22,7 @@ AndroidBeaconLibrary
 # Other
 gradle.properties
 .gradle
-/local.properties
-/.idea/workspace.xml
 .DS_Store
 .directory
 .env
 .ruby-gemset
-
-# Keep vendor libs out of repo
-lib/
