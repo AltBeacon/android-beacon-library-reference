@@ -1,6 +1,7 @@
 package org.altbeacon.beaconreference;
 
 import android.app.Application;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -41,6 +42,30 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         //beaconManager.getBeaconParsers().clear();
         //beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+
+
+        // Uncomment the code below to use a foreground service to scan for beacons. This unlocks
+        // the ability to continually scan for long periods of time in the background on Andorid 8+
+        // in exchange for showing an icon at the top of the screen and a always-on notification to
+        // communicate to users that your app is using resources in the background.
+        //
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setSmallIcon(R.drawable.ic_launcher);
+        builder.setContentTitle("Scanning for Beacons");
+        Intent intent = new Intent(this, MonitoringActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        builder.setContentIntent(pendingIntent);
+        beaconManager.enableForegroundServiceScanning(builder.build(), 456);
+
+        // For the above foreground scanning service to be useful, you need to disable
+        // JobScheduler-based scans (used on Android 8+) and set a fast background scan
+        // cycle that would otherwise be disallowed by the operating system.
+        //
+        beaconManager.setEnableScheduledScanJobs(false);
+        beaconManager.setBackgroundBetweenScanPeriod(0);
+        beaconManager.setBackgroundScanPeriod(1100);
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
