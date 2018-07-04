@@ -49,23 +49,23 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // in exchange for showing an icon at the top of the screen and a always-on notification to
         // communicate to users that your app is using resources in the background.
         //
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle("Scanning for Beacons");
-        Intent intent = new Intent(this, MonitoringActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-        );
-        builder.setContentIntent(pendingIntent);
-        beaconManager.enableForegroundServiceScanning(builder.build(), 456);
+        //Notification.Builder builder = new Notification.Builder(this);
+        //builder.setSmallIcon(R.drawable.ic_launcher);
+        //builder.setContentTitle("Scanning for Beacons");
+        //Intent intent = new Intent(this, MonitoringActivity.class);
+        //PendingIntent pendingIntent = PendingIntent.getActivity(
+        //        this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+        //);
+        //builder.setContentIntent(pendingIntent);
+        // beaconManager.enableForegroundServiceScanning(builder.build(), 456);
 
         // For the above foreground scanning service to be useful, you need to disable
         // JobScheduler-based scans (used on Android 8+) and set a fast background scan
         // cycle that would otherwise be disallowed by the operating system.
         //
-        beaconManager.setEnableScheduledScanJobs(false);
-        beaconManager.setBackgroundBetweenScanPeriod(0);
-        beaconManager.setBackgroundScanPeriod(1100);
+        //beaconManager.setEnableScheduledScanJobs(false);
+        //beaconManager.setBackgroundBetweenScanPeriod(0);
+        //beaconManager.setBackgroundScanPeriod(1100);
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
