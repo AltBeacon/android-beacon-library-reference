@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import org.altbeacon.beacon.BeaconConsumer;
@@ -20,6 +21,8 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
+
+import java.util.Collection;
 
 /**
  * 
@@ -37,7 +40,6 @@ public class MonitoringActivity extends Activity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_monitoring);
 		verifyBluetooth();
-        logToDisplay("Application just launched");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
@@ -91,11 +93,25 @@ public class MonitoringActivity extends Activity  {
 		Intent myIntent = new Intent(this, RangingActivity.class);
 		this.startActivity(myIntent);
 	}
+	public void onEnableClicked(View view) {
+		BeaconReferenceApplication application = ((BeaconReferenceApplication) this.getApplicationContext());
+		if (BeaconManager.getInstanceForApplication(this).getMonitoredRegions().size() > 0) {
+			application.disableMonitoring();
+			((Button)findViewById(R.id.enableButton)).setText("Re-Enable Monitoring");
+		}
+		else {
+			((Button)findViewById(R.id.enableButton)).setText("Disable Monitoring");
+			application.enableMonitoring();
+		}
+
+	}
 
     @Override
     public void onResume() {
         super.onResume();
-        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(this);
+        BeaconReferenceApplication application = ((BeaconReferenceApplication) this.getApplicationContext());
+        application.setMonitoringActivity(this);
+        updateLog(application.getLog());
     }
 
     @Override
@@ -115,8 +131,8 @@ public class MonitoringActivity extends Activity  {
 				builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 					@Override
 					public void onDismiss(DialogInterface dialog) {
-						finish();
-			            System.exit(0);					
+						//finish();
+			            //System.exit(0);
 					}					
 				});
 				builder.show();
@@ -131,8 +147,8 @@ public class MonitoringActivity extends Activity  {
 
 				@Override
 				public void onDismiss(DialogInterface dialog) {
-					finish();
-		            System.exit(0);					
+					//finish();
+		            //System.exit(0);
 				}
 				
 			});
@@ -142,12 +158,12 @@ public class MonitoringActivity extends Activity  {
 		
 	}	
 
-    public void logToDisplay(final String line) {
+    public void updateLog(final String log) {
     	runOnUiThread(new Runnable() {
     	    public void run() {
     	    	EditText editText = (EditText)MonitoringActivity.this
     					.findViewById(R.id.monitoringText);
-       	    	editText.append(line+"\n");            	    	    		
+       	    	editText.setText(log);
     	    }
     	});
     }

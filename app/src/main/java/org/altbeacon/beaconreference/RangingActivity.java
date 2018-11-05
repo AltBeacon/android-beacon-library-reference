@@ -25,31 +25,29 @@ public class RangingActivity extends Activity implements BeaconConsumer {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranging);
-
-        beaconManager.bind(this);
     }
 
     @Override 
     protected void onDestroy() {
         super.onDestroy();
-        beaconManager.unbind(this);
     }
 
     @Override 
     protected void onPause() {
         super.onPause();
-        if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(true);
+        beaconManager.unbind(this);
     }
 
     @Override 
     protected void onResume() {
         super.onResume();
-        if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(false);
+        beaconManager.bind(this);
     }
 
     @Override
     public void onBeaconServiceConnect() {
-        beaconManager.setRangeNotifier(new RangeNotifier() {
+
+        RangeNotifier rangeNotifier = new RangeNotifier() {
            @Override
            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
               if (beacons.size() > 0) {
@@ -59,10 +57,12 @@ public class RangingActivity extends Activity implements BeaconConsumer {
               }
            }
 
-        });
-
+        };
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+            beaconManager.addRangeNotifier(rangeNotifier);
+            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+            beaconManager.addRangeNotifier(rangeNotifier);
         } catch (RemoteException e) {   }
     }
 

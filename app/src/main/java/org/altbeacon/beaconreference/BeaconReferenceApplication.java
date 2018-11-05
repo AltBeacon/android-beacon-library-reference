@@ -2,11 +2,13 @@ package org.altbeacon.beaconreference;
 
 import android.app.Application;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -26,7 +28,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     private BackgroundPowerSaver backgroundPowerSaver;
     private boolean haveDetectedBeaconsSinceBoot = false;
     private MonitoringActivity monitoringActivity = null;
-
+    private String cumulativeLog = "";
 
     public void onCreate() {
         super.onCreate();
@@ -43,29 +45,43 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         //beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
 
+        beaconManager.setDebug(true);
+
 
         // Uncomment the code below to use a foreground service to scan for beacons. This unlocks
         // the ability to continually scan for long periods of time in the background on Andorid 8+
         // in exchange for showing an icon at the top of the screen and a always-on notification to
         // communicate to users that your app is using resources in the background.
         //
-        //Notification.Builder builder = new Notification.Builder(this);
-        //builder.setSmallIcon(R.drawable.ic_launcher);
-        //builder.setContentTitle("Scanning for Beacons");
-        //Intent intent = new Intent(this, MonitoringActivity.class);
-        //PendingIntent pendingIntent = PendingIntent.getActivity(
-        //        this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-        //);
-        //builder.setContentIntent(pendingIntent);
-        // beaconManager.enableForegroundServiceScanning(builder.build(), 456);
+
+        /*
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setSmallIcon(R.drawable.ic_launcher);
+        builder.setContentTitle("Scanning for Beacons");
+        Intent intent = new Intent(this, MonitoringActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        builder.setContentIntent(pendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("My Notification Channel ID",
+                    "My Notification Name", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("My Notification Channel Description");
+            NotificationManager notificationManager = (NotificationManager) getSystemService(
+                    Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(channel);
+            builder.setChannelId(channel.getId());
+        }
+        beaconManager.enableForegroundServiceScanning(builder.build(), 456);
 
         // For the above foreground scanning service to be useful, you need to disable
         // JobScheduler-based scans (used on Android 8+) and set a fast background scan
         // cycle that would otherwise be disallowed by the operating system.
         //
-        //beaconManager.setEnableScheduledScanJobs(false);
-        //beaconManager.setBackgroundBetweenScanPeriod(0);
-        //beaconManager.setBackgroundScanPeriod(1100);
+        beaconManager.setEnableScheduledScanJobs(false);
+        beaconManager.setBackgroundBetweenScanPeriod(0);
+        beaconManager.setBackgroundScanPeriod(1100);
+        */
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
@@ -82,6 +98,19 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
         // ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
     }
+
+    public void disableMonitoring() {
+        if (regionBootstrap != null) {
+            regionBootstrap.disable();
+            regionBootstrap = null;
+        }
+    }
+    public void enableMonitoring() {
+        Region region = new Region("backgroundRegion",
+                null, null, null);
+        regionBootstrap = new RegionBootstrap(this, region);
+    }
+
 
     @Override
     public void didEnterRegion(Region arg0) {
@@ -104,7 +133,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
             if (monitoringActivity != null) {
                 // If the Monitoring Activity is visible, we log info about the beacons we have
                 // seen on its display
-                monitoringActivity.logToDisplay("I see a beacon again" );
+                logToDisplay("I see a beacon again" );
             } else {
                 // If we have already seen beacons before, but the monitoring activity is not in
                 // the foreground, we send a notification to the user on subsequent detections.
@@ -118,16 +147,12 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didExitRegion(Region region) {
-        if (monitoringActivity != null) {
-            monitoringActivity.logToDisplay("I no longer see a beacon.");
-        }
+        logToDisplay("I no longer see a beacon.");
     }
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
-        if (monitoringActivity != null) {
-            monitoringActivity.logToDisplay("I have just switched from seeing/not seeing beacons: " + state);
-        }
+        logToDisplay("Current region state is: " + (state == 1 ? "INSIDE" : "OUTSIDE ("+state+")"));
     }
 
     private void sendNotification() {
@@ -152,6 +177,17 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     public void setMonitoringActivity(MonitoringActivity activity) {
         this.monitoringActivity = activity;
+    }
+
+    private void logToDisplay(String line) {
+        cumulativeLog += (line + "\n");
+        if (this.monitoringActivity != null) {
+            this.monitoringActivity.updateLog(cumulativeLog);
+        }
+    }
+
+    public String getLog() {
+        return cumulativeLog;
     }
 
 }

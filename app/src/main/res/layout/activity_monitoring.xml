@@ -34,4 +34,12 @@
         android:layout_below="@+id/monitoringText"
         android:text="Start Ranging" />
 
+    <Button
+        android:id="@+id/enableButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onEnableClicked"
+        android:layout_below="@+id/monitoringText"
+        android:layout_toRightOf="@id/Button01"
+        android:text="Disable monitoring" />
 </RelativeLayout>
