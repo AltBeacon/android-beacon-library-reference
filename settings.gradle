@@ -1,3 +1,4 @@
 //include ':android-beacon-library'
 include ':app'
+include ':101_monitor_beacon_region'
 

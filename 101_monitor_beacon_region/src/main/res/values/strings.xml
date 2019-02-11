@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">Beacon Monitor Demo</string>
+    <string name="scan_ready">Press scan button to scan beacon\n</string>
+    <string name="scan_not_ready">Press button to enable Bluetooth\n</string>
+    <string name="scan">Scan</string>
+    <string name="enable_bluetooth">Enable Bluetooth</string>
+    <string name="bluetooth_enabled">Bluetooth Enabled</string>
+    <string name="bluetooth_not_available">Bluetooth Not Available. Please use a real device.</string>
+    <string name="stop">Stop</string>
+</resources>
