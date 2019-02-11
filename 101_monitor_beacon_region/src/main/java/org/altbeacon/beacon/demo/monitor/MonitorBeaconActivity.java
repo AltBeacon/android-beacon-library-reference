@@ -24,20 +24,16 @@ import timber.log.Timber;
 public class MonitorBeaconActivity extends AppCompatActivity
         implements MonitorNotifier, BeaconConsumer {
 
-    private static final int REQUEST_TURN_ON_BLUETOOTH = 1;
-    private Button btn_scan;
     private Button btn_enable_bluetooth;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
         plantTimberLog();
-        btn_scan = findViewById(R.id.btn_scan);
         btn_enable_bluetooth = findViewById(R.id.btn_enable_bluetooth);
         initBeaconScanSettings();
-        initUI();
+
 
     }
 
@@ -51,42 +47,52 @@ public class MonitorBeaconActivity extends AppCompatActivity
         BeaconManager.setRegionExitPeriod(5000);
     }
 
-    private void initUI() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startToScanBeacon();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopScanningBeacon();
+    }
+
+    private void stopScanningBeacon() {
+        deregisterBeaconToBeMonitored(UuidProvider.beaconToMonitored());
+        BeaconManager.getInstanceForApplication(this).unbind(this);
+    }
+
+    private void startToScanBeacon() {
         if (bluetoothAvailable()) {
             boolean bluetoothEnabled = bluetoothEnabled();
-            initBluetoothStatus(bluetoothEnabled);
-            updateUI(bluetoothEnabled);
+            if (bluetoothEnabled) {
+                onBluetoothReady();
+            } else {
+                onBluetoothOff();
+            }
         } else {
-            btn_scan.setEnabled(false);
+            Timber.w(getString(R.string.bluetooth_not_available));
             btn_enable_bluetooth.setEnabled(false);
         }
 
+    }
+
+    private void onBluetoothOff() {
+        Timber.w(getString(R.string.scan_not_ready));
+        btn_enable_bluetooth.setText(R.string.enable_bluetooth);
+        btn_enable_bluetooth.setEnabled(true);
+    }
+
+    private void onBluetoothReady() {
+        btn_enable_bluetooth.setText(R.string.bluetooth_enabled);
+        btn_enable_bluetooth.setEnabled(false);
+        bindThenScan();
     }
 
     private boolean bluetoothAvailable() {
         return BluetoothAdapter.getDefaultAdapter() != null;
-    }
-
-    private void updateUI(boolean bluetoothEnabled) {
-        if (bluetoothEnabled) {
-            bindBeaconManager();
-        } else {
-            btn_scan.setEnabled(false);
-            Timber.w(getString(R.string.scan_not_ready));
-        }
-    }
-
-    private void initBluetoothStatus(boolean bluetoothEnabled) {
-        if (bluetoothEnabled) {
-            btn_enable_bluetooth.setText(R.string.bluetooth_enabled);
-            btn_enable_bluetooth.setEnabled(false);
-            btn_enable_bluetooth.setVisibility(View.INVISIBLE);
-        } else {
-            btn_enable_bluetooth.setText(R.string.enable_bluetooth);
-            btn_enable_bluetooth.setEnabled(true);
-            btn_enable_bluetooth.setVisibility(View.VISIBLE);
-        }
-
     }
 
     private boolean bluetoothEnabled() {
@@ -96,58 +102,25 @@ public class MonitorBeaconActivity extends AppCompatActivity
     }
 
     private void enableBluetooth() {
-        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivityForResult(enableBtIntent, REQUEST_TURN_ON_BLUETOOTH);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_TURN_ON_BLUETOOTH:
-                updateUI(bluetoothEnabled());
-                break;
-            default:
-                super.onActivityResult(requestCode, resultCode, data);
-                break;
-        }
+        startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
     }
 
 
-    private void bindBeaconManager() {
+    private void bindThenScan() {
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.addMonitorNotifier(this);
         beaconManager.bind(this);
     }
 
-    public void toggleScanStatus(View view) {
-        if (btn_scan.getText().equals(getString(R.string.scan))) {
-            onScanRequested();
-        } else {
-            onStopRequested();
-        }
-
-    }
-
-    private void onStopRequested() {
-        stopBeacon();
-        Timber.v("Beacon scanning stopped.");
-        btn_scan.setText(R.string.scan);
-    }
-
-    private void stopBeacon() {
-        deregisterBeaconToBeMonitored(UuidProvider.beaconToMonitored());
-    }
-
-    private void onScanRequested() {
-        Timber.v("Begin to scan beacon.");
-        btn_scan.setText(R.string.stop);
+    @Override
+    public void onBeaconServiceConnect() {
+        Timber.v(getString(R.string.scan_ready));
         scanBeacon();
     }
 
     private void scanBeacon() {
         registerBeaconToBeMonitored(UuidProvider.beaconToMonitored());
     }
-
 
     @Override
     public void didEnterRegion(Region region) {
@@ -161,13 +134,6 @@ public class MonitorBeaconActivity extends AppCompatActivity
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
-
-    }
-
-    @Override
-    public void onBeaconServiceConnect() {
-        Timber.v(getString(R.string.scan_ready));
-        btn_scan.setEnabled(true);
 
     }
 
