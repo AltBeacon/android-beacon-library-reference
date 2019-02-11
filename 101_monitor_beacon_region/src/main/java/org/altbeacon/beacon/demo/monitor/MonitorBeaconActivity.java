@@ -60,8 +60,11 @@ public class MonitorBeaconActivity extends AppCompatActivity
     }
 
     private void stopScanningBeacon() {
-        deregisterBeaconToBeMonitored(UuidProvider.beaconToMonitored());
-        BeaconManager.getInstanceForApplication(this).unbind(this);
+        if (bluetoothAvailable() && bluetoothEnabled()) {
+            deregisterBeaconToBeMonitored(UuidProvider.beaconToMonitored());
+            BeaconManager.getInstanceForApplication(this).removeMonitorNotifier(this);
+            BeaconManager.getInstanceForApplication(this).unbind(this);
+        }
     }
 
     private void startToScanBeacon() {
