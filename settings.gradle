@@ -1,3 +1,3 @@
-//include ':android-beacon-library'
+include ':android-beacon-library:lib'
 include ':app'
 
