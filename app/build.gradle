@@ -18,8 +18,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:28.0.0'
-    compile project(':android-beacon-library:lib')
-//    compile 'org.altbeacon:android-beacon-library:2.15.4'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    //implementation project(':android-beacon-library:lib')
+    implementation 'org.altbeacon:android-beacon-library:2+'
 }
