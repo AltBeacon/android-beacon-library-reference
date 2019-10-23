@@ -47,7 +47,7 @@ public class MonitoringActivity extends Activity  {
 					== PackageManager.PERMISSION_GRANTED) {
 				if (this.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 						!= PackageManager.PERMISSION_GRANTED) {
-					if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+					if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
 						final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 						builder.setTitle("This app needs background location access");
 						builder.setMessage("Please grant location access so this app can detect beacons in the background.");
