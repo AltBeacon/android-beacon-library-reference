@@ -115,17 +115,14 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     @Override
     public void didEnterRegion(Region arg0) {
         Log.d(TAG, "did enter region.");
-        // In this example, this class sends a notification to the user whenever a Beacon
+        // Send a notification to the user whenever a Beacon
         // matching a Region (defined above) are first seen.
+        Log.d(TAG, "Sending notification.");
+        sendNotification();
         if (monitoringActivity != null) {
             // If the Monitoring Activity is visible, we log info about the beacons we have
             // seen on its display
             logToDisplay("I see a beacon again" );
-        } else {
-            // The monitoring activity is not in
-            // the foreground, we send a notification to the user on subsequent detections.
-            Log.d(TAG, "Sending notification.");
-            sendNotification();
         }
     }
 
