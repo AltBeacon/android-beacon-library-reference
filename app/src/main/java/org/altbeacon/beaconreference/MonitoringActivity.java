@@ -2,11 +2,9 @@ package org.altbeacon.beaconreference;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -15,21 +13,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-
-import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
-
-import java.util.Collection;
 
 /**
  *
  * @author dyoung
  * @author Matt Tyler
  */
-public class MonitoringActivity extends Activity  {
+public class MonitoringActivity extends Activity implements MonitorNotifier {
 	protected static final String TAG = "MonitoringActivity";
 	private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
 	private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
@@ -40,8 +33,31 @@ public class MonitoringActivity extends Activity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_monitoring);
 		verifyBluetooth();
+		requestPermissions();
+		BeaconManager.getInstanceForApplication(this).addMonitorNotifier(this);
+		// No need to start monitoring here because we already did it in
+		// BeaconReferenceApplication.onCreate
+		// check if we are currently inside or outside of that region to update the display
+		if (BeaconReferenceApplication.insideRegion) {
+			logToDisplay("Beacons are visible.");
+		}
+		else {
+			logToDisplay("No beacons are visible.");
+		}
+	}
 
+	@Override
+	public void didEnterRegion(Region region) { logToDisplay("didEnterRegion called"); }
+	@Override
+	public void didExitRegion(Region region) {
+		logToDisplay("didExitRegion called");
+	}
+	@Override
+	public void didDetermineStateForRegion(int state, Region region) {
+		logToDisplay("didDetermineStateForRegion called with state: " + (state == 1 ? "INSIDE ("+state+")" : "OUTSIDE ("+state+")"));
+	}
 
+	private void requestPermissions() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
 					== PackageManager.PERMISSION_GRANTED) {
@@ -106,6 +122,8 @@ public class MonitoringActivity extends Activity  {
 		}
 	}
 
+
+
 	@Override
 	public void onRequestPermissionsResult(int requestCode,
 										   String permissions[], int[] grantResults) {
@@ -156,34 +174,19 @@ public class MonitoringActivity extends Activity  {
 		this.startActivity(myIntent);
 	}
 	public void onEnableClicked(View view) {
-		BeaconReferenceApplication application = ((BeaconReferenceApplication) this.getApplicationContext());
+		// This is a toggle.  Each time we tap it, we start or stop
+		Button button = (Button) findViewById(R.id.enableButton);
 		if (BeaconManager.getInstanceForApplication(this).getMonitoredRegions().size() > 0) {
-			application.disableMonitoring();
-			((Button)findViewById(R.id.enableButton)).setText("Re-Enable Monitoring");
+			BeaconManager.getInstanceForApplication(this).stopMonitoring(BeaconReferenceApplication.wildcardRegion);
+			button.setText("Enable Monitoring");
 		}
 		else {
-			((Button)findViewById(R.id.enableButton)).setText("Disable Monitoring");
-			application.enableMonitoring();
+			BeaconManager.getInstanceForApplication(this).startMonitoring(BeaconReferenceApplication.wildcardRegion);
+			button.setText("Disable Monitoring");
 		}
-
 	}
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        BeaconReferenceApplication application = ((BeaconReferenceApplication) this.getApplicationContext());
-        application.setMonitoringActivity(this);
-        updateLog(application.getLog());
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        ((BeaconReferenceApplication) this.getApplicationContext()).setMonitoringActivity(null);
-    }
-
 	private void verifyBluetooth() {
-
 		try {
 			if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) {
 				final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -193,8 +196,7 @@ public class MonitoringActivity extends Activity  {
 				builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 					@Override
 					public void onDismiss(DialogInterface dialog) {
-						//finish();
-			            //System.exit(0);
+						finishAffinity();
 					}
 				});
 				builder.show();
@@ -209,8 +211,7 @@ public class MonitoringActivity extends Activity  {
 
 				@Override
 				public void onDismiss(DialogInterface dialog) {
-					//finish();
-		            //System.exit(0);
+					finishAffinity();
 				}
 
 			});
@@ -220,12 +221,14 @@ public class MonitoringActivity extends Activity  {
 
 	}
 
-    public void updateLog(final String log) {
+	private String cumulativeLog = "";
+	private void logToDisplay(String line) {
+		cumulativeLog += line+"\n";
     	runOnUiThread(new Runnable() {
     	    public void run() {
     	    	EditText editText = (EditText)MonitoringActivity.this
     					.findViewById(R.id.monitoringText);
-       	    	editText.setText(log);
+       	    	editText.setText(cumulativeLog);
     	    }
     	});
     }

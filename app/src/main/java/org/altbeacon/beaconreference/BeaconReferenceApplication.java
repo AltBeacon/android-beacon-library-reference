@@ -9,26 +9,22 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 
-import androidx.core.app.NotificationCompat;
-
 import android.os.Build;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
-import org.altbeacon.beacon.startup.RegionBootstrap;
-import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.service.MonitoringStatus;
 
 /**
  * Created by dyoung on 12/13/13.
  */
-public class BeaconReferenceApplication extends Application implements BootstrapNotifier {
+public class BeaconReferenceApplication extends Application implements MonitorNotifier {
     private static final String TAG = "BeaconReferenceApp";
-    private RegionBootstrap regionBootstrap;
-    private BackgroundPowerSaver backgroundPowerSaver;
-    private MonitoringActivity monitoringActivity = null;
-    private String cumulativeLog = "";
+    public static final Region wildcardRegion = new Region("wildcardRegion", null, null, null);
+    public static boolean insideRegion = false;
 
     public void onCreate() {
         super.onCreate();
@@ -81,59 +77,45 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         beaconManager.setEnableScheduledScanJobs(false);
         beaconManager.setBackgroundBetweenScanPeriod(0);
         beaconManager.setBackgroundScanPeriod(1100);
+
         */
 
-        Log.d(TAG, "setting up background monitoring for beacons and power saving");
-        // wake up the app when a beacon is seen
-        Region region = new Region("backgroundRegion",
-                null, null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
 
-        // simply constructing this class and holding a reference to it in your custom Application
-        // class will automatically cause the BeaconLibrary to save battery whenever the application
-        // is not visible.  This reduces bluetooth power usage by about 60%
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
+        Log.d(TAG, "setting up background monitoring in app onCreate");
+        beaconManager.addMonitorNotifier(this);
+
+        // If we were monitoring *different* regions on the last run of this app, they will be
+        // remembered.  In this case we need to disable them here
+        for (Region region: beaconManager.getMonitoredRegions()) {
+            beaconManager.stopMonitoring(region);
+        }
+
+        beaconManager.startMonitoring(wildcardRegion);
 
         // If you wish to test beacon detection in the Android Emulator, you can use code like this:
         // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
         // ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
     }
 
-    public void disableMonitoring() {
-        if (regionBootstrap != null) {
-            regionBootstrap.disable();
-            regionBootstrap = null;
-        }
-    }
-    public void enableMonitoring() {
-        Region region = new Region("backgroundRegion",
-                null, null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
-    }
-
-
     @Override
     public void didEnterRegion(Region arg0) {
         Log.d(TAG, "did enter region.");
+        insideRegion = true;
         // Send a notification to the user whenever a Beacon
         // matching a Region (defined above) are first seen.
         Log.d(TAG, "Sending notification.");
         sendNotification();
-        if (monitoringActivity != null) {
-            // If the Monitoring Activity is visible, we log info about the beacons we have
-            // seen on its display
-            logToDisplay("I see a beacon again" );
-        }
     }
 
     @Override
     public void didExitRegion(Region region) {
-        logToDisplay("I no longer see a beacon.");
+        insideRegion = false;
+        // do nothing here. logging happens in MonitoringActivity
     }
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
-        logToDisplay("Current region state is: " + (state == 1 ? "INSIDE" : "OUTSIDE ("+state+")"));
+        // do nothing here. logging happens in MonitoringActivity
     }
 
     private void sendNotification() {
@@ -167,20 +149,4 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         builder.setContentIntent(resultPendingIntent);
         notificationManager.notify(1, builder.build());
     }
-
-    public void setMonitoringActivity(MonitoringActivity activity) {
-        this.monitoringActivity = activity;
-    }
-
-    private void logToDisplay(String line) {
-        cumulativeLog += (line + "\n");
-        if (this.monitoringActivity != null) {
-            this.monitoringActivity.updateLog(cumulativeLog);
-        }
-    }
-
-    public String getLog() {
-        return cumulativeLog;
-    }
-
 }

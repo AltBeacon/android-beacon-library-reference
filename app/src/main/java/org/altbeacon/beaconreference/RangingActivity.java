@@ -17,7 +17,7 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
-public class RangingActivity extends Activity implements BeaconConsumer {
+public class RangingActivity extends Activity {
     protected static final String TAG = "RangingActivity";
     private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
@@ -27,44 +27,30 @@ public class RangingActivity extends Activity implements BeaconConsumer {
         setContentView(R.layout.activity_ranging);
     }
 
-    @Override 
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override 
-    protected void onPause() {
-        super.onPause();
-        beaconManager.unbind(this);
-    }
-
-    @Override 
+    @Override
     protected void onResume() {
         super.onResume();
-        beaconManager.bind(this);
+        RangeNotifier rangeNotifier = new RangeNotifier() {
+            @Override
+            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                if (beacons.size() > 0) {
+                    Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  "+beacons.size());
+                    Beacon firstBeacon = beacons.iterator().next();
+
+                    logToDisplay("The first beacon " + firstBeacon.toString() + " is about " + firstBeacon.getDistance() + " meters away.");
+                }
+            }
+
+        };
+        beaconManager.addRangeNotifier(rangeNotifier);
+        beaconManager.startRangingBeacons(BeaconReferenceApplication.wildcardRegion);
     }
 
     @Override
-    public void onBeaconServiceConnect() {
-
-        RangeNotifier rangeNotifier = new RangeNotifier() {
-           @Override
-           public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-              if (beacons.size() > 0) {
-                  Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  "+beacons.size());
-                  Beacon firstBeacon = beacons.iterator().next();
-
-                  logToDisplay("The first beacon " + firstBeacon.toString() + " is about " + firstBeacon.getDistance() + " meters away.");
-              }
-           }
-
-        };
-        try {
-            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-            beaconManager.addRangeNotifier(rangeNotifier);
-            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-            beaconManager.addRangeNotifier(rangeNotifier);
-        } catch (RemoteException e) {   }
+    protected void onPause() {
+        super.onPause();
+        beaconManager.stopRangingBeacons(BeaconReferenceApplication.wildcardRegion);
+        beaconManager.removeAllRangeNotifiers();
     }
 
     private void logToDisplay(final String line) {
